@@ -349,43 +349,92 @@ function zib_get_points_free_lists($user_id)
     if (function_exists('xingxy_pz') && xingxy_pz('enable_tg_points_card', true)) {
         $tg_bot_url = xingxy_pz('tg_bot_url', 'https://t.me/moemoji_bot');
         
-        // 动态流体背景 HTML
+        // TG 专属的科技蓝赛博网格背景 + 流光动态效果
         $bg_html = '
-        <div class="xingxy-bg-container">
+        <div class="xingxy-tg-bg-container">
             <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;">
                 <defs>
-                    <filter id="goo">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
-                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" result="goo" />
-                        <feBlend in="SourceGraphic" in2="goo" />
+                    <filter id="tg-goo">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur" />
+                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10" result="tg-goo" />
+                        <feBlend in="SourceGraphic" in2="tg-goo" />
                     </filter>
                 </defs>
             </svg>
-            <div class="gradients-container">
-                <div class="xingxy-bg-bubble g1"></div><div class="xingxy-bg-bubble g2"></div>
-                <div class="xingxy-bg-bubble g3"></div><div class="xingxy-bg-bubble g4"></div>
-                <div class="xingxy-bg-bubble g5"></div>
+            <div class="tg-gradients-container">
+                <div class="tg-bubble b1"></div><div class="tg-bubble b2"></div>
+                <div class="tg-bubble b3"></div><div class="tg-bubble b4"></div>
             </div>
+            <div class="tg-grid-overlay"></div>
         </div>';
 
-        // 机器人 SVG 图标（类似纸飞机/电报风格）
-        $icon_html = '<div class="xingxy-gift-icon"><svg class="icon" viewBox="0 0 1024 1024" width="200" height="200"><path d="M1004.8 136.192L82.176 462.848c-32.512 11.264-32.96 46.272-3.136 58.752l238.4 97.472 550.592-343.36c25.92-15.68 49.728-7.232 30.144 10.176L392.256 636.928v171.84c0 30.272 17.536 34.688 38.656 16l103.552-100.8 215.104 158.848c39.616 21.824 67.968 10.56 77.76-36.992l140.736-663.296C983.552 108.8 945.728 89.28 1004.8 136.192z" fill="#0088CC"></path></svg></div>';
+        // TG 专属渐变星球/火箭 3D 风格图标
+        $icon_html = '<div class="xingxy-tg-icon"><svg class="icon" viewBox="0 0 1024 1024" width="200" height="200"><path d="M922.9 83L69.6 401.5c-37.4 14-36.9 70 0.9 83.3l251.5 88.5 76.5 240.5c7.9 24.8 41.5 27 52.8 4.2l56.5-114 186.5 137.5c23.6 17.5 57.5 4.3 64-24.6l195-824.5c8.7-36.9-27.1-66-59.4-49.4zM404.9 618.5l-65.5-23.5 448.5-408-383 431.5z" fill="url(#tg-grad)"></path><defs><linearGradient id="tg-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00C6FF" /><stop offset="100%" stop-color="#0072FF" /></linearGradient></defs></svg></div>';
 
-        $lists .= '<div class="border-bottom padding-h10 xingxy-referral-highlight" style="margin-top:20px;">';
+        $lists .= '<style>
+            /* TG 独享科技蓝样式 */
+            .xingxy-tg-highlight {
+                position: relative;
+                border-radius: 20px !important;
+                padding: 30px !important;
+                margin: 35px 0 25px 0 !important;
+                overflow: hidden;
+                box-shadow: 0 10px 30px rgba(0, 114, 255, 0.15);
+                z-index: 1;
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                gap: 25px;
+                background: #0f172a !important; /* 暗夜深蓝基底 */
+                border: 1px solid rgba(0, 198, 255, 0.2) !important;
+            }
+            body.dark-theme .xingxy-tg-highlight { background: #0b1120 !important; box-shadow: 0 15px 40px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(0, 198, 255, 0.1); }
+            
+            /* 背景动效 */
+            .xingxy-tg-bg-container { position: absolute; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+            .tg-gradients-container { filter: url(#tg-goo) blur(20px); width:100%; height:100%; opacity: 0.7; }
+            .tg-bubble { position: absolute; border-radius: 50%; mix-blend-mode: color-dodge; }
+            .tg-bubble.b1 { width: 120%; height: 120%; background: radial-gradient(circle at center, rgba(0, 198, 255, 0.15) 0, transparent 50%); top: -50%; left: -30%; animation: tgPulse 10s ease-in-out infinite alternate; }
+            .tg-bubble.b2 { width: 80%; height: 80%; background: radial-gradient(circle at center, rgba(0, 114, 255, 0.2) 0, transparent 50%); bottom: -20%; right: -10%; animation: tgPulse 12s ease-in-out infinite alternate-reverse; }
+            .tg-grid-overlay { position:absolute; top:0; left:0; width:100%; height:100%; background-image: linear-gradient(rgba(0, 198, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 198, 255, 0.05) 1px, transparent 1px); background-size: 20px 20px; z-index: 1; opacity: 0.5; }
+            
+            /* 图标与文本 */
+            .xingxy-tg-icon { width: 90px; height: 90px; z-index: 5; animation: icon-float 4s ease-in-out infinite; flex-shrink: 0; filter: drop-shadow(0 0 15px rgba(0, 198, 255, 0.4)); }
+            .xingxy-tg-title { color: #fff !important; font-size: 19px !important; font-weight: 900 !important; letter-spacing: 1px; margin-bottom: 8px !important; text-shadow: 0 2px 10px rgba(0,198,255,0.5); }
+            .xingxy-tg-desc { color: #94a3b8 !important; font-size: 13px !important; line-height: 1.6 !important; font-weight: 500;}
+            .xingxy-tg-desc.highlight { background: linear-gradient(90deg, #00C6FF, #0072FF); -webkit-background-clip: text; color: transparent !important; font-weight:bold; }
+            
+            /* 标签与按钮 */
+            .xingxy-tg-tag { position: absolute; top:0; right:0; font-size: 11px; background: linear-gradient(135deg, #00C6FF, #0072FF); color: #fff !important; padding: 4px 14px; border-radius: 0 20px 0 12px; font-weight: 900; box-shadow: 0 4px 15px rgba(0, 198, 255, 0.5); z-index: 8; letter-spacing: 1px; }
+            .xingxy-tg-btn { position:relative; background: linear-gradient(90deg, #00C6FF, #0072FF) !important; color: #fff !important; border: none !important; padding: 8px 20px !important; border-radius: 30px !important; font-weight: bold !important; box-shadow: 0 5px 15px rgba(0, 114, 255, 0.4), inset 0 2px 0 rgba(255,255,255,0.2) !important; transition: all 0.3s !important; z-index: 5; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+            .xingxy-tg-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 198, 255, 0.6), inset 0 2px 0 rgba(255,255,255,0.2) !important; color:#fff !important; }
+            
+            /* 移动端覆盖 */
+            @media (max-width: 768px) {
+                .xingxy-tg-highlight { flex-direction: column !important; align-items: flex-start !important; padding: 20px 15px !important; gap: 15px !important; }
+                .xingxy-tg-highlight .flex.jsb.ac { flex-direction: column !important; align-items: flex-start !important; gap: 15px !important; width: 100% !important; }
+                .xingxy-tg-icon { width: 65px; height: 65px; margin-bottom: 5px; }
+                .xingxy-right-panel.tg-panel { width: 100% !important; align-items: flex-start !important; gap: 10px !important; }
+                .xingxy-tg-btn { width: 100% !important; justify-content: center !important; }
+            }
+            @keyframes tgPulse { 0% { transform: scale(1) translate(0, 0); } 100% { transform: scale(1.1) translate(20px, -20px); } }
+        </style>';
+
+        $lists .= '<div class="border-bottom padding-h10 xingxy-tg-highlight">';
         $lists .= $bg_html;
         $lists .= $icon_html;
-        $lists .= '<span class="xingxy-referral-tag" style="background:var(--focus-color);">奖励翻倍</span>';
-        $lists .= '<div class="flex jsb ac" style="position:relative;z-index:2;height:100%;align-items:center;">';
+        $lists .= '<span class="xingxy-tg-tag">极客首选</span>';
+        $lists .= '<div class="flex jsb ac" style="position:relative;z-index:2;height:100%;align-items:center;flex-grow:1;">';
         
-        $lists .= '<div class="flex1 mr20">';
-        $lists .= '<div class="font-bold mb6" style="font-size:16px;">🤖 TG 小芽精灵</div>';
-        $lists .= '<div class="xingxy-referral-desc">签到 +75 · 邀请 +80 · 绑定 +120</div>';
-        $lists .= '<div class="xingxy-referral-desc mt3">积分可 1:1 兑换为站点积分</div>';
+        $lists .= '<div class="flex1 mr20" style="z-index:5;">';
+        $lists .= '<div class="xingxy-tg-title">🤖 TG 小芽精灵</div>';
+        $lists .= '<div class="xingxy-tg-desc">签到 <span style="color:#00C6FF">++75</span> · 邀请 <span style="color:#00C6FF">+80</span> · 绑定 <span style="color:#00C6FF">+120</span></div>';
+        $lists .= '<div class="xingxy-tg-desc highlight mt3">积分可 1:1 兑换为站点积分</div>';
         $lists .= '</div>';
         
-        $lists .= '<div class="xingxy-right-panel" style="display:flex;flex-direction:column;align-items:flex-end;">';
-        $lists .= '<span class="focus-color em14 shrink0" style="margin-bottom:8px;"> <i class="fa fa-diamond mr6 em09"></i> 超多福利</span>';
-        $lists .= '<a href="' . esc_url($tg_bot_url) . '" target="_blank" rel="noopener" class="but c-blue shrink0 radius" style="font-size:13px;padding:6px 15px;box-shadow:0 4px 10px rgba(0,136,204,0.3);"><i class="fa fa-paper-plane-o mr6"></i> 前往领取</a>';
+        $lists .= '<div class="xingxy-right-panel tg-panel" style="display:flex;flex-direction:column;align-items:flex-end;z-index:5;min-width:180px;">';
+        $lists .= '<span style="font-size:22px;font-weight:900;color:#00C6FF;text-shadow:0 0 15px rgba(0,198,255,0.4);margin-bottom:10px;line-height:1;font-family:inherit;"> <i class="fa fa-paper-plane-o mr6" style="font-size:16px;"></i> 奖励翻倍</span>';
+        $lists .= '<a href="' . esc_url($tg_bot_url) . '" target="_blank" rel="noopener" class="but xingxy-tg-btn">立即前往 TG →</a>';
         $lists .= '</div>';
         
         $lists .= '</div></div>';
