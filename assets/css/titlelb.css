@@ -1,0 +1,967 @@
+@font-face {
+    font-family: 'iconfont';
+    /* 字体名称 */
+    src: url('//at.alicdn.com/t/c/font_4660907_obo8au1r4bj.woff2?t=1724284380698') format('woff2'),
+        url('//at.alicdn.com/t/c/font_4660907_obo8au1r4bj.woff?t=1724284380698') format('woff'),
+        url('//at.alicdn.com/t/c/font_4660907_obo8au1r4bj.ttf?t=1724284380698') format('truetype');
+}
+
+/* #home_top 样式：设置容器的最大宽度、内外边距 */
+#home_top {
+    max-width: 1400px;
+    /* 最大宽度 */
+    margin: auto;
+    /* 水平居中 */
+    margin-top: .5rem;
+    /* 顶部外边距 */
+    margin-bottom: .5rem;
+    /* 底部外边距 */
+    /* padding: 0 1.5rem; */
+    /* 左右内边距 */
+    width: 100%;
+    /* 宽度为100% */
+}
+
+/* 响应式调整：当屏幕宽度小于768px时，调整 #home_top 的边距和内边距 */
+@media screen and (max-width: 768px) {
+    #home_top {
+        padding: 0;
+        /* 取消内边距 */
+        margin-top: 0;
+        /* 取消顶部外边距 */
+    }
+}
+
+/* 最近帖子容器样式：设置圆角和溢出控制 */
+.recent-top-post-group {
+    border-radius: 12px;
+    /* 圆角效果 */
+    overflow: hidden;
+    /* 隐藏溢出的内容 */
+    width: 100%;
+    /* 宽度为100% */
+}
+
+/* 最近帖子项的样式：显示为水平排列的 flexbox */
+.recent-post-top {
+    display: flex;
+    /* 使用flex布局 */
+    flex-direction: row;
+    /* 水平排列 */
+    width: 100%;
+    /* 宽度为100% */
+    overflow-x: auto;
+    /* 横向滚动 */
+}
+
+/* 隐藏滚动条 */
+.recent-post-top::-webkit-scrollbar {
+    display: none;
+    /* 隐藏滚动条 */
+}
+
+/* 最近帖子项的每个项样式 */
+.recent-post-top .recent-post-item {
+    display: flex;
+    /* 使用flex布局 */
+    width: 200px;
+    /* 每项宽度为200px */
+    flex-direction: column;
+    /* 垂直排列 */
+    align-items: flex-start;
+    /* 项目对齐 */
+    margin-left: .5rem;
+    /* 左侧外边距 */
+    background: #070707;
+    /* 背景颜色 */
+    border-radius: 12px;
+    /* 圆角效果 */
+    overflow: hidden;
+    /* 隐藏溢出内容 */
+    height: 164px;
+    /* 高度为164px */
+    max-height: 164px;
+    /* 最大高度为164px */
+    border: var(--style-border-always);
+    /* 使用变量定义的边框样式 */
+    transition: .3s;
+    /* 过渡效果 */
+    position: relative;
+    /* 定位 */
+    box-shadow: var(--heo-shadow-border);
+    /* 使用变量定义的阴影 */
+}
+
+/* 响应式调整：当屏幕宽度小于768px时，调整最近帖子项的圆角和阴影 */
+@media screen and (max-width: 768px) {
+    .recent-post-top .recent-post-item {
+        border-radius: 8px;
+        /* 圆角调整 */
+        box-shadow: none;
+        /* 取消阴影 */
+        clip-path: inset(0 0 0 0 round 8px);
+        /* 修改裁剪路径 */
+    }
+
+    .recent-post-top .recent-post-item:last-child {
+        margin-right: 1rem;
+        /* 最后一个项右侧外边距 */
+    }
+}
+
+/* 最近帖子顶部文本样式 */
+span.recent-post-top-text {
+    position: absolute;
+    /* 定位 */
+    top: 0;
+    /* 距离顶部为0 */
+    left: -40px;
+    /* 初始时距离左侧-40px */
+    display: flex;
+    /* 使用flex布局 */
+    z-index: 1;
+    /* 设置层级 */
+    background: #0624e7;
+    /* 背景色 */
+    color: #ffffff;
+    /* 文字颜色 */
+    padding: 2px 8px;
+    /* 内边距 */
+    font-size: .6rem;
+    /* 字体大小 */
+    border-radius: 12px 0 12px 0;
+    /* 圆角效果 */
+    transition: .3s;
+    /* 过渡效果 */
+    cursor: pointer;
+    /* 鼠标指针 */
+}
+
+/* 悬停时显示文本 */
+.recent-post-item:hover .recent-post-top-text {
+    left: 0;
+    /* 悬停时调整位置 */
+}
+
+/* 响应式调整：屏幕宽度小于80px时，显示 #home_top */
+@media screen and (max-width: 80px) {
+    #home_top {
+        display: block;
+        /* 修改为显示 */
+    }
+}
+
+/* 在屏幕宽度大于80px时，悬停时的效果 */
+@media screen and (min-width: 80px) {
+    .recent-post-top .recent-post-item:hover {
+        border: var(--style-border-hover);
+        /* 悬停时边框样式 */
+        box-shadow: var(--bywind-shadow-main);
+        /* 悬停时阴影效果 */
+        transform: scale(1.03);
+        /* 悬停时放大 */
+    }
+
+    .recent-post-top .recent-post-item:active {
+        transform: scale(.97);
+        /* 激活时缩小 */
+    }
+}
+
+/* 响应式调整：当屏幕宽度小于768px时，调整最近帖子项样式 */
+@media screen and (max-width: 768px) {
+    .recent-top-post-group {
+        border-radius: 0;
+        /* 去除圆角 */
+        background: var(--bywind-card-bg);
+        /* 背景色 */
+    }
+
+    .recent-post-top-text {
+        display: flex;
+        /* 修改为显示 */
+    }
+
+    .recent-post-top .recent-post-item .post_cover img {
+        border-radius: 8px 8px 0 0 !important;
+        /* 强制设置图片的圆角 */
+    }
+}
+
+/* 最近帖子项封面图片的样式 */
+.recent-post-top .recent-post-item .post_cover a {
+    height: 100px;
+    /* 高度设置 */
+    overflow: hidden;
+    /* 隐藏溢出内容 */
+    display: flex;
+    /* 使用flex布局 */
+}
+
+/* 图片样式：确保图片覆盖整个容器并保持圆角 */
+.recent-post-top .recent-post-item .post_cover img {
+    object-fit: cover;
+    /* 保持图片的覆盖效果 */
+    width: 100%;
+    /* 宽度为100% */
+    background: var(--bywind-secondbg);
+    /* 背景色 */
+    border-radius: 12px 12px 0 0;
+    /* 圆角效果 */
+}
+
+/* 悬停时图片放大 */
+.recent-post-top .recent-post-item:hover .post_cover img {
+    transform: scale(1);
+    /* 放大效果 */
+}
+
+/* 最近帖子项信息区域的样式 */
+.recent-post-top .recent-post-item .recent-post-info {
+    padding: .3rem .5rem .3rem .5rem !important;
+    /* 设置内边距 */
+    transition: .3s;
+    /* 过渡效果 */
+}
+
+/* 悬停时调整文章链接的颜色 */
+.recent-post-top .recent-post-item:hover .recent-post-info a {
+    color: var(--bywind-fontcolor);
+    /* 文字颜色 */
+}
+
+/* 文章标题的样式：限制最大行数 */
+.recent-post-top .recent-post-item .recent-post-info .article-title {
+    -webkit-line-clamp: 2;
+    /* 限制为2行 */
+    overflow: hidden;
+    /* 隐藏溢出的文本 */
+    display: -webkit-box;
+    /* 使用webkit的盒子模型 */
+    display: box;
+    /* 标准的盒子模型 */
+    -webkit-box-orient: vertical;
+    /* 设置方向为垂直 */
+    box-orient: vertical;
+    /* 标准属性 */
+    -webkit-line-clamp: 2;
+    /* 限制为2行 */
+    line-clamp: 2;
+    /* 添加标准属性 */
+    line-height: 1.5;
+    /* 行高 */
+    justify-content: center;
+    /* 内容居中 */
+    align-items: flex-end;
+    /* 末端对齐 */
+    align-content: center;
+    /* 内容居中 */
+    padding-top: .5rem;
+    /* 顶部内边距 */
+    font-weight: 700;
+    /* 字体加粗 */
+    font-size: .8rem !important;
+    /* 字号 */
+    padding: 0 !important;
+    /* 清除内边距 */
+}
+
+/* 分类按钮的样式 */
+.categoryItem {
+    overflow: hidden;
+    /* 隐藏溢出的内容 */
+    transform: scale(1);
+    /* 初始缩放为1 */
+    transition: all 0.8s cubic-bezier(0.65, 0.15, 0.37, 1.19);
+    /* 平滑过渡效果 */
+    height: 48%;
+    /* 高度 */
+    border-radius: 12px;
+    /* 圆角效果 */
+}
+
+a.categoryButton {
+    height: 100%;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.67);
+    border-radius: 12px;
+    display: inline-block;
+    text-align: left;
+    line-height: 4em;
+    font-weight: 800;
+    font-size: 16px;
+    color: #FFF;
+    transition: all .8s cubic-bezier(.39, .575, .565, 1);
+    transform: scale(1);
+    overflow: hidden;
+}
+
+a.categoryButton i {
+    transform: scale(1.0) rotate(15deg);
+}
+
+@media screen and (min-width: 80px) {
+    a.categoryButton:active {
+        transform: scale(0.97);
+    }
+}
+
+@media screen and (max-width: 768px) {
+    a.categoryButton {
+        border-radius: 8px;
+    }
+
+    .categoryItem {
+        border-radius: 0px;
+        height: 47%;
+        box-shadow: none !important;
+    }
+}
+
+a.categoryButton:after {
+    top: 45px;
+    width: 1rem;
+    left: 21px;
+    height: 2px;
+    background: #fff;
+    content: "";
+    border-radius: 1px;
+    position: absolute;
+}
+
+.categoryButtonText {
+    padding-left: 21px;
+}
+
+a.categoryButton i {
+    font-size: 12rem;
+    opacity: .3;
+    position: absolute;
+    right: 15px;
+    top: 10%;
+    transition: 0.3s;
+    width: 100px;
+    text-align: center;
+    filter: blur(2px);
+}
+
+@media screen and (max-width: 768px) {
+    a.categoryButton i {
+        display: none;
+    }
+
+    .recent-post-top .categoryGroup {
+        min-width: 130px !important;
+        margin-bottom: 0.5rem;
+        margin-left: 1rem;
+        max-height: 164px;
+        overflow: hidden;
+        position: relative;
+    }
+}
+
+.topGroup {
+    display: flex;
+}
+
+#bannerGroup {
+    display: flex;
+}
+
+div#banners {
+    display: none;
+}
+
+.topGroup .todayCard {
+    display: none;
+}
+
+@media screen and (min-width: 80px) {
+    .topGroup {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        height: calc(328px + 0.5rem);
+        align-content: space-between;
+        width: calc(600px + 1.5rem);
+        position: relative;
+    }
+
+    div#bannerGroup {
+        width: calc(100% - 600px - 2rem);
+        margin-right: 0.5rem;
+        height: calc(328px + 0.5rem);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    div#banners {
+        display: flex;
+        width: 100%;
+        height: 76%;
+        background: var(--bywind-card-bg);
+        margin-bottom: 0.5rem;
+        border: var(--style-border);
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: var(--bywind-shadow-border);
+        flex-direction: column;
+        overflow: hidden;
+        transition: 0.3s;
+        clip-path: inset(0 0 0 0 round 12px);
+    }
+
+    div#banners:hover {
+        box-shadow: var(--bywind-shadow-main);
+    }
+
+    #banners.flink {
+        margin-bottom: 0.5rem;
+    }
+
+    #banners .banner-button-group {
+        position: absolute;
+        right: 2rem;
+        top: 2rem;
+        display: flex;
+    }
+
+    #banners .banner-button {
+        padding: 8px 12px;
+        background: var(--bywind-fontcolor);
+        border-radius: 12px;
+        color: var(--bywind-card-bg);
+        display: flex;
+        align-items: center;
+        z-index: 1;
+        transition: 0.3s;
+        cursor: pointer;
+        box-shadow: var(--bywind-shadow-black);
+    }
+
+    #banners .banner-button.secondary {
+        background: var(--bywind-secondbg);
+        border: var(--style-border-always);
+        color: var(--bywind-lighttext);
+        margin-right: 1rem;
+        box-shadow: var(--bywind-shadow-border);
+    }
+
+    .banner-button:hover {
+        background: #425aef;
+    }
+
+    #banners .banner-button i {
+        margin-right: 8px;
+        font-size: 1rem;
+    }
+
+    .banners-title {
+        top: 2rem;
+        left: 1.5rem;
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .banners-title-big {
+        font-size: 36px;
+        line-height: 1;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .banners-title-small {
+        font-size: 12px;
+        line-height: 1;
+        color: var(--bywind-card-bg);
+        margin-top: 8px;
+        margin-bottom: 0.5rem;
+    }
+
+    #banner-hover {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        backdrop-filter: blur(15px) !important;
+        padding-left: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        opacity: 0;
+        transition: cubic-bezier(0.71, 0.15, 0.16, 1.15) 0.6s;
+    }
+
+    .bannerText {
+        color: #fff;
+        font-size: 4rem;
+        line-height: 4rem;
+        font-weight: bold;
+        margin-top: 20px;
+    }
+
+    .bannerText::after {
+        content: '\e603';
+        font-family: iconfont;
+    }
+
+    .icon-right::before {
+        content: '\e6c9';
+        font-family: iconfont;
+        color: #fff;
+    }
+
+    .banner-righticon {
+        font-size: 4rem;
+        opacity: 0.6;
+    }
+
+    #banners:hover #banner-hover {
+        opacity: 1;
+        padding-left: 2rem;
+        background: #4259efc9;
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        -webkit-transform-style: preserve-3d;
+        transform-style: preserve-3d;
+        /* 添加标准属性 */
+        transition: 0.3s;
+        background-size: 200%;
+        cursor: pointer;
+    }
+
+    #banners #banner-hover i {
+        font-size: 80px;
+        opacity: 0.4;
+    }
+
+    .topGroup .todayCard {
+        position: absolute;
+        width: calc(600px + 1rem);
+        height: 100%;
+        z-index: 1;
+        top: 0;
+        left: 0;
+        background: var(--bywind-card-bg);
+        border-radius: 12px;
+        margin-left: 0.5rem;
+        overflow: hidden;
+        transition: 0.3s;
+        display: flex;
+        cursor: pointer;
+        pointer-events: all;
+    }
+
+    .topGroup .todayCard::after {
+        position: absolute;
+        content: '';
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+    }
+
+    .topGroup .todayCard.hide {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .topGroup .todayCard .todayCard-info {
+        position: absolute;
+        bottom: 2rem;
+        left: 2rem;
+        z-index: 2;
+        max-width: 60%;
+        transition: 0.3s;
+    }
+
+    .topGroup .todayCard.hide .todayCard-info {
+        bottom: 1rem;
+        opacity: 0;
+    }
+
+    .topGroup .todayCard .todayCard-info .todayCard-tips {
+        opacity: 0.8;
+        font-size: 1.6rem;
+    }
+
+    .topGroup .todayCard .todayCard-info .todayCard-title {
+        font-size: 28px;
+        font-weight: bold;
+        line-height: 36px;
+    }
+
+    .topGroup .banner-button-group {
+        position: absolute;
+        right: 2rem;
+        bottom: 2rem;
+        display: flex;
+        transition: 0.3s;
+    }
+
+    .topGroup .todayCard.hide .banner-button-group {
+        bottom: 1rem;
+    }
+
+    .topGroup .banner-button {
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        z-index: 1;
+        transition: 0.3s;
+        cursor: pointer;
+        backdrop-filter: saturate(180%) blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px);
+        transform: translateZ(0);
+        height: 40px;
+        width: 118px;
+        justify-content: center;
+    }
+
+    /* 删除空的规则集 */
+    .topGroup .banner-button i {
+        margin-right: 8px;
+        font-size: 22px;
+    }
+
+    .topGroup .todayCard .todayCard-cover {
+        position: absolute;
+        min-width: 100%;
+        min-height: 100%;
+        top: 0;
+        left: 0;
+        background-size: cover;
+        z-index: -1;
+        transition: 0.3s;
+    }
+
+    .topGroup .todayCard.hide .todayCard-cover {
+        transform: scale(1.2);
+    }
+}
+
+.tags-group-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 30px
+}
+
+.tags-group-all {
+    display: flex;
+    transform: rotate(-30deg)
+}
+
+.tags-group-all.nowrapMove {
+    transform: rotate(0);
+    padding-bottom: 2rem
+}
+
+.tags-group-wrapper {
+    margin-top: 5rem;
+    display: flex;
+    flex-wrap: nowrap;
+    animation: rowup 60s linear infinite
+}
+
+.nowrapMove .tags-group-wrapper {
+    margin-top: 7rem;
+    animation: rowup 120s linear infinite
+}
+
+.tags-group-icon-pair .tags-group-icon:nth-child(even) {
+    margin-top: 1rem;
+    transform: translate(-60px)
+}
+
+.tags-group-icon-pair {
+    margin-left: 1rem
+}
+
+.tags-group-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 66px;
+    font-weight: 700;
+    box-shadow: var(--bywind-shadow-blackdeep)
+}
+
+.nowrapMove .tags-group-icon {
+    border-radius: 50%
+}
+
+.tags-group-icon img {
+    width: 60%
+}
+
+.nowrapMove .tags-group-icon img {
+    min-width: 100%;
+    min-height: 100%;
+    border-radius: 50%;
+    object-fit: cover
+}
+
+.categoryItem:hover i {
+    opacity: .8;
+    transition: .8s;
+    transition-delay: .15s;
+    transform: scale(1.03) rotate(0);
+    font-size: 4rem;
+    filter: blur(0)
+}
+
+@media screen and (min-width: 80px) {
+    .categoryItem:hover i {
+        transform: scale(1.03) rotate(0)
+    }
+}
+
+.cate-button-text {
+    box-shadow: var(--bywind-shadow-black)
+}
+
+.recent-post-top .categoryGroup {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 200px
+}
+
+.categoryGroup .categoryItem:nth-child(3) {
+    display: none
+}
+
+@media screen and (min-width: 80px) {
+    .recent-post-top .categoryGroup {
+        flex-direction: row;
+        height: 24%
+    }
+
+    .categoryItem {
+        width: calc(100% / 3 - .33rem);
+        height: 100%;
+        margin-right: .5rem
+    }
+
+    .categoryItem:last-child {
+        margin-right: 0
+    }
+
+    .categoryItem:hover {
+        width: 50%
+    }
+
+    .categoryGroup .categoryItem:nth-child(3) {
+        display: flex
+    }
+}
+
+a.categoryButton.wniui_one {
+    background: linear-gradient(to right, #358bff, #15c6ff);
+    background-size: 200%
+}
+
+a.categoryButton.wniui_two {
+    background: linear-gradient(to right, #f65, #ffbf37);
+    background-size: 200%
+}
+
+a.categoryButton.wniui_three {
+    background: linear-gradient(to right, #18e7ae, #1eebeb);
+    background-size: 200%
+}
+
+[data-theme=dark] a.categoryButton.wniui_one {
+    background: linear-gradient(to right, #0653b8, #2fcbff);
+    background-size: 200%
+}
+
+[data-theme=dark] a.categoryButton.wniui_two {
+    background: linear-gradient(to right, #e22a16, #da980c);
+    background-size: 200%
+}
+
+[data-theme=dark] a.categoryButton.wniui_three {
+    background: linear-gradient(to right, #099e74, #0ea4a4);
+    background-size: 200%
+}
+
+a.categoryButton:hover {
+    background-position: 100% 0
+}
+
+@keyframes rowup {
+    from {
+        transform: translateX(0)
+    }
+
+    to {
+        transform: translateX(-50%)
+    }
+}
+
+#recent-post-top .recent-post-item .post_cover {
+    width: 100%;
+}
+
+#recent-posts>.recent-post-item>.recent-post-info>.article-meta-wrap {
+    position: absolute;
+    bottom: 16px;
+    transition: .3s;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    width: 100%;
+    left: 0;
+    padding: 0 32px;
+    white-space: nowrap
+}
+
+.banner-button-text {
+    color: #fff;
+}
+
+.banner-button-text::before {
+    content: '\e605 ';
+    font-family: iconfont;
+}
+
+.icon-star-smile-fill::before {
+    content: '\e72c';
+    font-family: iconfont;
+}
+
+.icon-fire-fill::before {
+    content: '\e699';
+    font-family: iconfont;
+}
+
+.icon-book-mark-fill::before {
+    content: '\e628';
+    font-family: iconfont;
+}
+
+@media screen and (max-width: 920px) {
+
+    /* 调整 todayCard */
+    .todayCard {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+
+    /* 调整 todayCard-cover */
+    .todayCard-cover {
+        height: 150px;
+        background-size: cover;
+    }
+
+    /* 调整 todayCard-info */
+    .todayCard-info {
+        padding: 10px;
+        text-align: center;
+    }
+
+    .todayCard-tips {
+        font-size: 1rem;
+    }
+
+    .todayCard-title {
+        font-size: 1.2rem;
+    }
+
+    /* 调整 banner-button-group */
+    .banner-button-group {
+        position: static;
+        margin-top: 10px;
+        text-align: center;
+    }
+
+    .banner-button {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+    }
+
+    .banner-button-text {
+        font-size: 0.9rem;
+    }
+
+    /* 调整父容器 */
+    .topGroup {
+        width: 100%;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+
+    #home_top {
+        width: 100%;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+}
+
+/* 调整布局宽度 */
+#home_top {
+    max-width: 1600px;
+    /* 原1400px */
+}
+
+/* 保持原有样式 */
+.todayCard-title,
+.todayCard-tips,
+.topGroup.banner-button {
+    color: #ffffff
+}
+
+.topGroup.todayCard {
+    background: #000000
+}
+
+/* 媒体查询，当屏幕宽度小于768px时调整布局 */
+@media screen and (max-width: 768px) {
+    #home_top {
+        padding: 0 10px;
+        /* 增加内边距，避免内容紧贴屏幕边缘 */
+    }
+
+    .recent-top-post-group {
+        overflow-x: auto;
+        /* 允许水平滚动 */
+    }
+
+    .tags-group-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        /* 允许图标组换行 */
+    }
+
+    .tags-group-icon-pair {
+        width: 50%;
+        /* 每个图标对占50%宽度 */
+        box-sizing: border-box;
+        padding: 5px;
+    }
+
+    .categoryGroup {
+        display: flex;
+        flex-wrap: wrap;
+        /* 允许分类组换行 */
+    }
+
+    .categoryItem {
+        width: 100%;
+        /* 每个分类项占100%宽度 */
+        margin-bottom: 10px;
+    }
+}

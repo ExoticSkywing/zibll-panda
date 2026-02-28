@@ -1,0 +1,60 @@
+/* 复制自插件 zibll-home-banner 的样式（精简保留核心结构） */
+@font-face {
+    font-family: 'iconfont';
+    src: url('//at.alicdn.com/t/c/font_4660907_obo8au1r4bj.woff2?t=1724284380698') format('woff2'),
+        url('//at.alicdn.com/t/c/font_4660907_obo8au1r4bj.woff?t=1724284380698') format('woff'),
+        url('//at.alicdn.com/t/c/font_4660907_obo8au1r4bj.ttf?t=1724284380698') format('truetype');
+}
+
+#home_top {
+    max-width: var(--mian-max-width);
+    margin: auto;
+    margin-top: .5rem;
+    padding: 0 .5rem;
+    width: 100%;
+    background: transparent!important;
+}
+
+@media screen and (max-width: 768px) {
+    #home_top { padding:0; margin-top: 0; }
+}
+
+.recent-top-post-group { border-radius: 12px; overflow: hidden; overflow-x: auto; width: 100%; margin-bottom: 0; }
+.recent-post-top { display: flex; flex-direction: row; flex-wrap: nowrap; width: 100%; overflow-x: scroll; }
+.recent-post-top::-webkit-scrollbar { display: none; }
+
+#bannerGroup { display: flex; }
+div#banners { display: flex; width: 100%; height: 76%; background: var(--bywind-card-bg); margin-bottom: .5rem; border: var(--style-border); border-radius: 12px; overflow: hidden; position: relative; box-shadow: var(--bywind-shadow-border); flex-direction: column; transition: .3s; clip-path: inset(0 0 0 0 round 12px) }
+.banners-title { top: 2rem; left: 1.5rem; position: absolute; display: flex; flex-direction: column; }
+.banners-title-big { font-size: 36px; line-height: 1; font-weight: 700; margin-bottom: 8px; }
+.banners-title-small { font-size: 12px; line-height: 1; color: var(--bywind-secondtext); margin-top: 8px; margin-bottom: .5rem; }
+
+#banner-hover { position: absolute; width: 100%; height: 100%; top: 0; left: 0; backdrop-filter: blur(15px)!important; padding-left: .5rem; display: flex; flex-direction: column; }
+
+.topGroup { display: flex; }
+.todayCard { display: block; position: relative; width: calc(600px + 1.5rem); height: calc(328px + .5rem); }
+.todayCard-info { position: absolute; z-index: 2; left: 1rem; top: 1rem; color: #fff; }
+.todayCard-cover-slides { position: relative; overflow: hidden; }
+.todayCard-slides-wrapper { display:flex; transition: transform .8s cubic-bezier(.4,0,.2,1); will-change: transform; }
+.todayCard-slide-item { flex:0 0 100%; background-size:cover; background-position:center; display:block; position:relative; }
+.todayCard-indicators { position:absolute; left:0; right:0; bottom:10px; text-align:center; z-index:10; pointer-events:none; }
+.todayCard-indicators .indicator-dot { display:inline-block; margin:0 3px; background:rgba(255,255,255,.7); transition:background .3s,border-radius .3s,width .3s,height .3s; cursor:pointer; pointer-events:auto; vertical-align:middle; width:7px; height:7px; border-radius:50%; }
+.todayCard-indicators .indicator-dot.active { width:16px; height:6px; border-radius:3px; background:#fff; }
+.todayCard-arrow { position:absolute; top:50%; transform:translateY(-50%); color:#fff; cursor:pointer; z-index:3; }
+.todayCard-arrow-left { left:10px; }
+.todayCard-arrow-right { right:10px; }
+
+.banner-button-group { position: absolute; right: 2rem; top: 2rem; display: flex; z-index: 3; }
+.banner-button { padding: 8px 12px; background: var(--bywind-fontcolor); border-radius: 12px; color: var(--bywind-card-bg); display: flex; align-items: center; transition: .3s; cursor: pointer; box-shadow: var(--bywind-shadow-black); }
+.banner-button:hover { background: #425aef; }
+.banner-button-text { font-size: 14px; }
+
+.tags-group-all { position:absolute; left:1.5rem; bottom: 1rem; display:flex; }
+.tags-group-wrapper { display:flex; flex-wrap:wrap; gap:.5rem; }
+.tags-group-icon-pair { display:flex; gap:.5rem; }
+.tags-group-icon { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.tags-group-icon img { width:100%; height:100%; object-fit:cover; }
+
+@media screen and (max-width: 1200px) {
+    #home_top { display:none; }
+}

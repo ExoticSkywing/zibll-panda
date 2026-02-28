@@ -1,0 +1,3 @@
+[submodule "xingxy"]
+	path = xingxy
+	url = git@github.com:ExoticSkywing/panda---xingxy.git

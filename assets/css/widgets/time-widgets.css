@@ -1,0 +1,51 @@
+ .progress-text {
+     left: 50%;
+     top: 50%;
+     transform: translate(-50%, -50%)
+ }
+
+ .panda-time-progress {
+     background: #2e8fff;
+     border-radius: 15px;
+     padding: 10px;
+     margin-bottom: 20px;
+     color: #fff;
+     display: flex;
+     gap: 10px;
+     justify-content: space-between
+ }
+
+ .panda-time-progress .progress-warp {
+     flex: 1;
+     background: #216ddf;
+     border-radius: 15px;
+     overflow: hidden;
+     position: relative
+ }
+
+ .panda-time-progress .progress-warp .progress-progress {
+     background: #fff;
+     height: 100%
+ }
+
+ .panda-time-progress .progress-warp .progress-text {
+     position: absolute;
+     font-size: 25px;
+     font-weight: 600;
+     color: #2e8fff;
+     left: 50%;
+     top: 50%
+ }
+
+ .panda-time-progress .progress-note {
+     padding: 5px 10px
+ }
+
+ .panda-time-progress .progress-note .progress-time-title {
+     font-size: 20px;
+     font-weight: 600
+ }
+
+ .panda-time-progress .progress-note .progress-time-sub-title {
+     font-size: 12px
+ }

@@ -1,0 +1,101 @@
+.panda-zx {
+    position: relative;
+    margin-bottom: 10px;
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    justify-content: center;
+    line-height: 1
+}
+
+.panda-zx:before {
+    margin-right: 10px
+}
+
+.panda-zx:after {
+    margin-left: 10px
+}
+
+.panda-zx:after,
+.panda-zx:before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%
+}
+
+.panda-zx:after,
+.panda-zx:before,
+.panda-zx span {
+    display: inline-block;
+    background: linear-gradient(-125deg, #f95491, #2953fd)
+}
+
+.panda-zx span {
+    -webkit-background-clip: text;
+    color: transparent;
+    font-size: 42px;
+    letter-spacing: 5px;
+    font-weight: 700
+}
+
+.panda-zx .panda-zx-n {
+    font-size: 16px
+}
+
+.panda-zx .panda-zx-n strong {
+    display: block;
+    font-size: 20px;
+    background: linear-gradient(-125deg, #f95491, #2953fd);
+    -webkit-background-clip: text;
+    color: transparent
+}
+
+.HhcatboxDes {
+    position: absolute;
+    opacity: 0;
+    z-index: 1;
+    align-items: center;
+    display: flex;
+    font-size: 16px;
+    height: 180px;
+    justify-content: center;
+    width: 100%;
+    color: #fff;
+    font-weight: 600;
+    background: #f95491;
+    -webkit-transition: all .35s ease-in-out;
+    -moz-transition: all .35s ease-in-out;
+    transition: all .35s ease-in-out;
+    -webkit-transform: translateY(100%);
+    -moz-transform: translateY(100%);
+    -ms-transform: translateY(100%);
+    -o-transform: translateY(100%);
+    transform: translateY(100%)
+}
+
+.HhCooltitle {
+    margin-top: 10px
+}
+
+.panda-zx-underline {
+    position: relative;
+    margin-bottom: 10px;
+    display: flex;
+    -webkit-box-align: center;
+    align-items: center;
+    -webkit-box-pack: center;
+    justify-content: center;
+    line-height: 1
+}
+
+.panda-zx-underline span {
+    background: linear-gradient(-125deg, #f95491, #2953fd);
+    -webkit-background-clip: text;
+    color: transparent;
+    font-size: 12px;
+    letter-spacing: 5px;
+    display: inline-block;
+    font-weight: 700
+}
