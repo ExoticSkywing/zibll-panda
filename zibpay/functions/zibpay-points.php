@@ -385,7 +385,10 @@ function zib_get_points_free_lists($user_id)
         
         $lists .= '<div class="xingxy-right-panel" style="display:flex;flex-direction:column;align-items:flex-end;">';
         $lists .= '<span class="focus-color em14 shrink0" style="margin-bottom:8px;"> <i class="fa fa-diamond mr6 em09"></i> 超多福利</span>';
-        $lists .= '<a href="' . esc_url($tg_bot_url) . '" target="_blank" rel="noopener" class="but c-blue shrink0 radius" style="font-size:13px;padding:6px 15px;box-shadow:0 4px 10px rgba(0,136,204,0.3);"><i class="fa fa-paper-plane-o mr6"></i> 前往领取</a>';
+        $lists .= '<div class="xingxy-toggle-control" style="width:140px;">';
+        $lists .= '<div class="xingxy-toggle-track">';
+        $lists .= '<a href="' . esc_url($tg_bot_url) . '" target="_blank" rel="noopener" class="xingxy-toggle-label tg-btn-custom" style="width:100%;text-decoration:none;"><i class="fa fa-paper-plane-o"></i> 前往领取</a>';
+        $lists .= '</div></div>';
         $lists .= '</div>';
         
         $lists .= '</div></div>';
