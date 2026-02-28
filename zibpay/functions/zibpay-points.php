@@ -345,50 +345,50 @@ function zib_get_points_free_lists($user_id)
         }
     }
 
-    // TG Bot 引流卡片（Xingxy 定制功能，科技极简风）
+    // TG Bot 引流卡片（Xingxy 定制功能）
     if (function_exists('xingxy_pz') && xingxy_pz('enable_tg_points_card', true)) {
         $tg_bot_url = xingxy_pz('tg_bot_url', 'https://t.me/moemoji_bot');
         
-        // 科技暗蓝背景 + 发光边框
-        $bg_style = 'background: linear-gradient(135deg, #18222d 0%, #1e2a38 100%); border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 8px 30px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05); border-radius: 16px; margin: 20px 0; padding: 24px 20px; overflow: hidden; position: relative;';
-        
-        // 右上角微弱的光晕
-        $glow_html = '<div style="position:absolute; top:-50%; right:-10%; width:200px; height:200px; background:radial-gradient(circle, rgba(0,136,204,0.15) 0%, transparent 70%); border-radius:50%; pointer-events:none;"></div>';
+        // 动态流体背景 HTML
+        $bg_html = '
+        <div class="xingxy-bg-container">
+            <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;">
+                <defs>
+                    <filter id="goo">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
+                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" result="goo" />
+                        <feBlend in="SourceGraphic" in2="goo" />
+                    </filter>
+                </defs>
+            </svg>
+            <div class="gradients-container">
+                <div class="xingxy-bg-bubble g1"></div><div class="xingxy-bg-bubble g2"></div>
+                <div class="xingxy-bg-bubble g3"></div><div class="xingxy-bg-bubble g4"></div>
+                <div class="xingxy-bg-bubble g5"></div>
+            </div>
+        </div>';
 
-        // 纯净版 TG 纸飞机图标
-        $icon_html = '<div style="width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; background: rgba(0,136,204,0.1); border-radius: 14px; margin-right: 20px; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,136,204,0.2);"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21.0039 3V3.03l-18.06 7.15c-1.61.64-1.6 1.54-.3 1.94l4.63 1.44 1.76 5.61c.21.68.73.68 1.05.35l2.67-2.6 5.56 4.11c1.02.56 1.76.28 2.01-.93l3.63-17.07c.36-1.5-.54-2.18-1.52-1.72h-1.43zm-14.7 9.87l10.4-6.55c.48-.3.93-.14.56.19l-8.83 7.97-.33 3.49 1.49-2.28-3.29-2.82z" fill="#0088CC"></path></svg></div>';
+        // 机器人 SVG 图标（类似纸飞机/电报风格）
+        $icon_html = '<div class="xingxy-gift-icon"><svg class="icon" viewBox="0 0 1024 1024" width="200" height="200"><path d="M1004.8 136.192L82.176 462.848c-32.512 11.264-32.96 46.272-3.136 58.752l238.4 97.472 550.592-343.36c25.92-15.68 49.728-7.232 30.144 10.176L392.256 636.928v171.84c0 30.272 17.536 34.688 38.656 16l103.552-100.8 215.104 158.848c39.616 21.824 67.968 10.56 77.76-36.992l140.736-663.296C983.552 108.8 945.728 89.28 1004.8 136.192z" fill="#0088CC"></path></svg></div>';
 
-        $lists .= '<div class="border-bottom padding-h10 xingxy-tg-card" style="' . $bg_style . '">';
-        $lists .= $glow_html;
-        $lists .= '<div class="flex jsb ac" style="position:relative; z-index:2; flex-wrap:wrap; gap:15px;">';
-        
-        $lists .= '<div class="flex flex1 ac" style="min-width: 200px;">';
+        $lists .= '<div class="border-bottom padding-h10 xingxy-referral-highlight xingxy-tg-card" style="margin-top:20px;">';
+        $lists .= $bg_html;
         $lists .= $icon_html;
-        $lists .= '<div>';
-        $lists .= '<div class="font-bold mb6" style="font-size: 16px; color: #fff; letter-spacing: 0.5px;">Telegram 小芽精灵 <span class="badg" style="background: rgba(255,107,107,0.15); color: #ff6b6b; font-size: 10px; margin-left: 6px; border: 1px solid rgba(255,107,107,0.3); padding: 2px 6px;">积分任务</span></div>';
-        $lists .= '<div style="color: rgba(255,255,255,0.6); font-size: 13px; line-height: 1.5;">签到 <span style="color:#0088cc">+75</span> · 邀请 <span style="color:#0088cc">+80</span> · 绑定 <span style="color:#0088cc">+120</span></div>';
-        $lists .= '<div style="color: rgba(255,255,255,0.4); font-size: 12px; margin-top: 4px;">积分可 1:1 兑换为站点余额</div>';
-        $lists .= '</div></div>';
+        $lists .= '<span class="xingxy-referral-tag" style="background:var(--focus-color);">奖励翻倍</span>';
+        $lists .= '<div class="flex jsb ac" style="position:relative;z-index:2;height:100%;align-items:center;">';
         
-        // 高对比纯白 CTA 按钮
-        $lists .= '<div style="display: flex; align-items: center; justify-content: flex-end; flex-shrink: 0;">';
-        $lists .= '<a href="' . esc_url($tg_bot_url) . '" target="_blank" rel="noopener" class="but radius" style="background: #ffffff; color: #0088cc; font-weight: 600; font-size: 13px; padding: 8px 20px; box-shadow: 0 4px 12px rgba(255,255,255,0.15); transition: all 0.3s; border: none;">前往领取 🚀</a>';
+        $lists .= '<div class="flex1 mr20">';
+        $lists .= '<div class="font-bold mb6" style="font-size:16px;">🤖 TG 小芽精灵</div>';
+        $lists .= '<div class="xingxy-referral-desc">签到 +75 · 邀请 +80 · 绑定 +120</div>';
+        $lists .= '<div class="xingxy-referral-desc mt3">积分可 1:1 兑换为站点积分</div>';
+        $lists .= '</div>';
+        
+        $lists .= '<div class="xingxy-right-panel" style="display:flex;flex-direction:column;align-items:flex-end;">';
+        $lists .= '<span class="focus-color em14 shrink0" style="margin-bottom:8px;"> <i class="fa fa-diamond mr6 em09"></i> 超多福利</span>';
+        $lists .= '<a href="' . esc_url($tg_bot_url) . '" target="_blank" rel="noopener" class="but c-blue shrink0 radius" style="font-size:13px;padding:6px 15px;box-shadow:0 4px 10px rgba(0,136,204,0.3);"><i class="fa fa-paper-plane-o mr6"></i> 前往领取</a>';
         $lists .= '</div>';
         
         $lists .= '</div></div>';
-        
-        // 补充一小段内联样式处理 hover 和移动端
-        $lists .= '<style>
-        .xingxy-tg-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .xingxy-tg-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.08); }
-        .xingxy-tg-card .but:hover { transform: scale(1.05); box-shadow: 0 6px 16px rgba(255,255,255,0.25); }
-        @media (max-width: 500px) {
-            .xingxy-tg-card .flex.jsb.ac { flex-direction: column; align-items: flex-start; }
-            .xingxy-tg-card .flex.flex1.ac { width: 100%; }
-            .xingxy-tg-card > div > div:last-child { width: 100%; margin-top: 5px; }
-            .xingxy-tg-card .but { width: 100%; justify-content: center; padding: 10px 0; }
-        }
-        </style>';
     }
 
     foreach (zib_get_user_integral_add_options() as $k => $v) {
