@@ -379,16 +379,13 @@ function zib_get_points_free_lists($user_id)
         
         $lists .= '<div class="flex1 mr20">';
         $lists .= '<div class="font-bold mb6" style="font-size:16px;">🤖 TG 小芽精灵</div>';
-        $lists .= '<div class="xingxy-referral-desc">签到 +75 · 邀请 +80 · 绑定 +120</div>';
-        $lists .= '<div class="xingxy-referral-desc mt3">积分可 1:1 兑换为站点积分</div>';
+        $lists .= '<div class="xingxy-referral-desc">签到 <span style="color:#ffd700;font-weight:900;text-shadow:0 1px 3px rgba(255,215,0,0.5);">+75</span> &nbsp;·&nbsp; 邀请 <span style="color:#ffd700;font-weight:900;text-shadow:0 1px 3px rgba(255,215,0,0.5);">+80</span> &nbsp;·&nbsp; 绑定 <span style="color:#ffd700;font-weight:900;text-shadow:0 1px 3px rgba(255,215,0,0.5);">+120</span></div>';
+        $lists .= '<div class="xingxy-referral-desc mt3">积分可 <span style="color:#ff6b6b;font-weight:900;">1:1</span> 兑换为站点积分</div>';
         $lists .= '</div>';
         
         $lists .= '<div class="xingxy-right-panel" style="display:flex;flex-direction:column;align-items:flex-end;">';
         $lists .= '<span class="focus-color em14 shrink0" style="margin-bottom:8px;"> <i class="fa fa-diamond mr6 em09"></i> 超多福利</span>';
-        $lists .= '<div class="xingxy-toggle-control" style="width:140px;">';
-        $lists .= '<div class="xingxy-toggle-track">';
-        $lists .= '<a href="' . esc_url($tg_bot_url) . '" target="_blank" rel="noopener" class="xingxy-toggle-label tg-btn-custom" style="width:100%;text-decoration:none;"><i class="fa fa-paper-plane-o"></i> 前往领取</a>';
-        $lists .= '</div></div>';
+        $lists .= '<a href="' . esc_url($tg_bot_url) . '" target="_blank" rel="noopener" class="tg-btn-custom"><i class="fa fa-paper-plane-o"></i> 前往领取</a>';
         $lists .= '</div>';
         
         $lists .= '</div></div>';
