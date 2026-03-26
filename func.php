@@ -66,6 +66,11 @@ if(!function_exists('sg_load')){
     }
     add_action('admin_notices','sw_admin_notice');
 } else{
+    // WP 6.9 默认按需加载 block CSS，WP 6.8 仍加载完整 wp-block-library 包
+    // 完整包会导致 Zibll 亮点块等 inline-block 布局溢出（4列变3列）
+    // 此 filter 与 WP 6.9 行为对齐，优先级 0 允许其他插件覆盖
+    add_filter( 'should_load_separate_core_block_assets', '__return_true', 0 );
+
     // 对接子主题核心文件
     require_once get_theme_file_path('/panda/functions.php');
     
