@@ -1220,9 +1220,8 @@ if(panda_pz('editor_save')){
                 var realXHR = new oldXHR();
                 realXHR.addEventListener('readystatechange', function() {
                     if (realXHR.readyState === 4) {
-                        if (realXHR.responseURL =='../wp-admin/admin-ajax.php') {
-                            hasChanges= false
-                        
+                        if (realXHR.responseURL && realXHR.responseURL.indexOf('admin-ajax.php') !== -1) {
+                            hasChanges = false;
                         }
                     }
                 }, false);
