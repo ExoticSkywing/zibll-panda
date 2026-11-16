@@ -44,6 +44,8 @@ function zibpay_ajax_submit_order()
     $_other_data = [];
     switch ($order_type) {
         case 9: //购买积分
+            // Points purchases do not grant article-related services.
+            $__data['post_id'] = 0;
             if (!$user_id) {
                 zib_send_json_error('请先登录');
             }
@@ -85,6 +87,12 @@ function zibpay_ajax_submit_order()
                         zib_send_json_error('当前卡密可兑换的积分为0');
                     }
 
+                    $__mate_order_data['xingxy_points_terms'] = array(
+                        'version' => 1,
+                        'points'  => $card_price,
+                        'source'  => 'card',
+                    );
+
                     add_filter('pay_order_price_is_allow_0', '__return_true'); //卡密-允许订单金额为0
 
                     $__data['order_price'] = 0;
@@ -113,10 +121,20 @@ function zibpay_ajax_submit_order()
                     }
 
                     $__data['order_price'] = round(($custom_points / _pz('pay_points_rate')), 2);
+                    $__mate_order_data['xingxy_points_terms'] = array(
+                        'version' => 1,
+                        'points'  => $custom_points,
+                        'source'  => 'custom',
+                    );
                 } else {
                     $product               = _pz('pay_points_product');
                     $__data['order_price'] = $product[$product_id]['pay_price'];
                     $__data['product_id']  = 'points_' . $product_id;
+                    $__mate_order_data['xingxy_points_terms'] = array(
+                        'version' => 1,
+                        'points'  => $product[$product_id]['points'],
+                        'source'  => 'package',
+                    );
                 }
             }
             break;
@@ -490,6 +508,18 @@ function zibpay_ajax_submit_order()
 
     if (!$zibpay_order) {
         zib_send_json_error(['code' => 'add_order_error', 'msg' => '订单创建失败']);
+    }
+
+    if ($order_type === 9) {
+        $managed = apply_filters(
+            'xingxy_ecosystem_points_purchase_freeze',
+            null,
+            $zibpay_order,
+            $__mate_order_data['xingxy_points_terms'] ?? null
+        );
+        if ($managed !== null && $managed !== true) {
+            zib_send_json_error('积分订单准备失败，请稍后重试');
+        }
     }
 
     //准备支付数据

@@ -892,8 +892,9 @@ function zibpay_get_order_pay_over_time(array &$order)
     $last_time = strtotime('+' . $max_time * 60 . ' Second', strtotime($order['create_time']));
     if (strtotime($current_time) > $last_time) {
         //更新订单状态为失效
+        $closed = zibpay::close_order($order['id'], 'timeout', '超时自动关闭');
+        if ($closed === false && apply_filters('xingxy_ecosystem_points_payment_debit_managed', false) !== false && (($order['pay_type'] ?? null) === 'points' || (!empty($order['payment_id']) && (zibpay::get_payment($order['payment_id'])['method'] ?? null) === 'points'))) { return false; }
         $order['status'] = -1;
-        zibpay::close_order($order['id'], 'timeout', '超时自动关闭');
         return 'over';
     }
 
@@ -923,8 +924,9 @@ function zibpay_get_payment_pay_over_time(array &$payment_data)
     $last_time = strtotime('+' . $max_time * 60 . ' Second', strtotime($payment_data['create_time']));
     if (strtotime($current_time) > $last_time) {
         //更新订单状态为失效
+        $closed = zibpay::close_payment($payment_data['id'], 'timeout', '超时自动关闭');
+        if ($closed === false && apply_filters('xingxy_ecosystem_points_payment_debit_managed', false) !== false && (($payment_data['method'] ?? zibpay::get_payment($payment_data['id'])['method'] ?? null) === 'points')) { return false; }
         $payment_data['status'] = -1;
-        zibpay::close_payment($payment_data['id'], 'timeout', '超时自动关闭');
         return 'over';
     }
 

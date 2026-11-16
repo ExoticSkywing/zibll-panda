@@ -944,6 +944,7 @@ function zibpay_get_order_pay_modal_content(array $payment_data, $return_url = n
         $form = '<form>';
         $form .= $return_url ? '<input type="hidden" name="return_url" value="' . $return_url . '">' : '';
         $form .= '<input type="hidden" name="payment_id" value="' . $payment_id . '">';
+        $form .= wp_nonce_field('xingxy-points-payment-' . $payment_id, '_xingxy_points_nonce', false, false);
         $form .= '<button class="but jb-yellow padding-lg btn-block radius initiate-pay mt10" >立即支付<span class="ml6 px12">' . zibpay_get_points_mark() . '</span>' . $_total_pay_price . '</button>';
         $form .= '</form>';
 

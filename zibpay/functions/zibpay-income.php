@@ -365,7 +365,24 @@ function zibpay_update_order_income_price($pay_order)
     );
 
     do_action('author_points_income', $data, $pay_order); //获得积分分成，添加挂钩
-    zibpay_update_user_points($post_author, $data);
+    $income_order_id = $pay_order->id;
+    if (is_string($income_order_id) && preg_match('/\A[1-9][0-9]*\z/', $income_order_id) === 1) {
+        $maximum_income_id = (string) PHP_INT_MAX;
+        if (strlen($income_order_id) > strlen($maximum_income_id)
+            || (strlen($income_order_id) === strlen($maximum_income_id)
+                && strcmp($income_order_id, $maximum_income_id) > 0)) {
+            return;
+        }
+        $income_order_id = (int) $income_order_id;
+    }
+    if (!is_int($income_order_id) || $income_order_id < 1) {
+        return;
+    }
+    $data['event_namespace'] = 'site.author_income';
+    $data['event_id'] = 'author-income-' . $income_order_id;
+    if (zibpay_update_user_points($post_author, $data) !== true) {
+        return;
+    }
 
     //更新订单的分成状态
     $income_detail                  = maybe_unserialize($pay_order->income_detail);

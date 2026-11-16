@@ -631,6 +631,16 @@ function zibpay_get_pay_transfer_modal($type = 'points', $recipient = 0)
 
     $form .= $desc ? '<div class="muted-box muted-2-color padding-10 mb10 em09">' . $desc . '</div>' : '';
 
+    // One token belongs to this rendered form and survives repeated AJAX submissions.
+    $managed_fields = '';
+    if ($type === 'points' && apply_filters('xingxy_ecosystem_points_transfer_managed', false) === true) {
+        $operation_id = wp_generate_uuid4();
+        $managed_fields = '<input type="hidden" name="operation_id" value="' . esc_attr($operation_id) . '">'
+            . '<input type="hidden" name="_xingxy_points_nonce" value="'
+            . esc_attr(wp_create_nonce('xingxy-points-transfer-' . $operation_id)) . '">';
+    }
+
+    $form .= $managed_fields;
     $form .= '<div class="mt20">
     <input type="hidden" name="type" value="' . $type . '">
     <input type="hidden" name="recipient" value="' . $recipient . '">

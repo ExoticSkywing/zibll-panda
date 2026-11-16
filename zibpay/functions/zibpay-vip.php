@@ -1050,7 +1050,7 @@ function zibpay_get_vip_points_exchange_modal()
     $form        = '<div class="mt20">
     <input type="hidden" name="product_id" value="0">
     <input type="hidden" name="order_type" value="4">
-    <input type="hidden" name="action" value="points_initiate_pay">
+    <input type="hidden" name="action" value="points_initiate_pay">' . wp_nonce_field('xingxy-points-order', '_xingxy_points_nonce', false, false) . '
     <button class="mt6 but jb-yellow btn-block radius padding-lg wp-ajax-submit"><i class="fa fa-check" aria-hidden="true"></i>立即兑换</button>
     </div>';
 

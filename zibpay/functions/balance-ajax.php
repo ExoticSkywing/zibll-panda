@@ -95,6 +95,37 @@ add_action('wp_ajax_transfer_user_search', 'zibpay_ajax_transfer_user_search');
 
 function zibpay_ajax_pay_transfer()
 {
+    // An owned points request reaches the idempotent ledger before cached balances.
+    if (($_REQUEST['type'] ?? 'points') !== 'balance') {
+        try {
+            $managed_points = apply_filters('xingxy_ecosystem_points_transfer_managed', false);
+            if ($managed_points !== false) {
+                if ($managed_points !== true || !class_exists('Xingxy_Ecosystem_Points_Transfer_Theme')) {
+                    zib_send_json_error('转账暂不可用，请稍后重试');
+                    return;
+                }
+                $sender = get_current_user_id();
+                $target = Xingxy_Ecosystem_Points_Transfer_Theme::post_integer('recipient', PHP_INT_MAX);
+                $gross = Xingxy_Ecosystem_Points_Transfer_Theme::post_integer('price', Xingxy_Ecosystem_Points_Ledger::MAX_POINTS);
+                $fee = Xingxy_Ecosystem_Points_Transfer_Theme::fee_amount($gross, _pz('points_service_charge'));
+                $managed = apply_filters('xingxy_ecosystem_points_transfer', null,
+                    $sender, $target, $gross, $fee, $_POST['operation_id'] ?? null, '', '');
+                if (!is_array($managed) || ($managed['ok'] ?? null) !== true || !is_bool($managed['replayed'] ?? null)) {
+                    zib_send_json_error('转账暂不可用，请稍后重试');
+                    return;
+                }
+                if (!$managed['replayed']) {
+                    do_action('pay_transfer', 'points', wp_get_current_user(), get_userdata($target), $gross, _pz('points_service_charge'));
+                }
+                zib_send_json_success(['msg' => '转账成功', 'reload' => true]);
+                return;
+            }
+        } catch (Throwable $exception) {
+            zib_send_json_error('转账暂不可用，请稍后重试');
+            return;
+        }
+    }
+
     $type      = !empty($_REQUEST['type']) ? $_REQUEST['type'] : 'points';
     $price     = !empty($_REQUEST['price']) ? ($type === 'balance' ? round((float) $_REQUEST['price'], 2) : (int) $_REQUEST['price']) : 0;
     $recipient = !empty($_REQUEST['recipient']) ? (int) $_REQUEST['recipient'] : 0;
@@ -156,6 +187,34 @@ add_action('wp_ajax_pay_transfer', 'zibpay_ajax_pay_transfer');
 //管理员后台添加或扣除余额或者积分
 function zibpay_ajax_admin_update_user_balance_or_points()
 {
+    // Admin points adjustments use the same explicit ownership boundary.
+    if (($_REQUEST['action'] ?? null) !== 'admin_update_user_balance') {
+        try {
+            $managed_points = apply_filters('xingxy_ecosystem_points_transfer_managed', false);
+            if ($managed_points !== false) {
+                if ($managed_points !== true || !class_exists('Xingxy_Ecosystem_Points_Transfer_Theme')) {
+                    zib_send_json_error('操作暂不可用，请稍后重试');
+                    return;
+                }
+                $target = Xingxy_Ecosystem_Points_Transfer_Theme::post_integer('user_id', PHP_INT_MAX);
+                $amount = Xingxy_Ecosystem_Points_Transfer_Theme::post_integer('val', Xingxy_Ecosystem_Points_Ledger::MAX_POINTS);
+                if ($amount !== null && ($_POST['type'] ?? null) !== 'add') { $amount = -$amount; }
+                $managed = apply_filters('xingxy_ecosystem_points_admin_adjust', null,
+                    $target, $amount, Xingxy_Ecosystem_Points_Transfer_Theme::description(),
+                    $_POST['operation_id'] ?? null, get_current_user_id());
+                if (!is_array($managed) || ($managed['ok'] ?? null) !== true || !is_bool($managed['replayed'] ?? null)) {
+                    zib_send_json_error('操作暂不可用，请稍后重试');
+                    return;
+                }
+                zib_send_json_success('操作成功，请刷新页面后查看最新数据');
+                return;
+            }
+        } catch (Throwable $exception) {
+            zib_send_json_error('操作暂不可用，请稍后重试');
+            return;
+        }
+    }
+
 
     if (!is_super_admin()) {
         zib_send_json_error('权限不足，仅管理员可操作');

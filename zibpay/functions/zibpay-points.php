@@ -84,6 +84,21 @@ function zibpay_get_points_mark($class = 'icon')
  */
 function zibpay_update_user_points($user_id, $data)
 {
+    $event_namespace = $data['event_namespace'] ?? null;
+    $is_free_points_event = is_string($event_namespace)
+        && strpos($event_namespace, 'site.free.') === 0;
+    // Free-point rewards have a separate daily-accounting writer. Until that
+    // writer claims the event, keep this path on the native Zibll mutation so
+    // a generic points writer cannot create a second, incomplete free ledger.
+    if (!$is_free_points_event) {
+        $managed = apply_filters('xingxy_ecosystem_points_update', null, $user_id, $data);
+        if ($managed !== null) {
+            return $managed === true;
+        }
+    }
+    // Event identity fields belong to the staged writer only. Removing them
+    // before the legacy path keeps the old points_record payload unchanged.
+    unset($data['event_namespace'], $data['event_id']);
     $defaults = array(
         'order_num' => '', //订单号
         'value'     => 0, //值 整数为加，负数为减去
@@ -141,6 +156,11 @@ function zibpay_get_order_pay_points($order)
  */
 function zibpay_payment_order_points($pay_order)
 {
+    $managed = apply_filters('xingxy_ecosystem_points_purchase_settle', null, $pay_order);
+    if ($managed !== null) {
+        return $managed === true;
+    }
+
     $order_type = $pay_order->order_type;
     if ($order_type == 9 && _pz('points_pay_s')) {
         //如果是余额充值
@@ -287,7 +307,14 @@ function zibpay_get_user_points_record_lists($user_id = 0)
         return;
     }
 
-    $record = (array) zib_get_user_meta($user_id, 'points_record', true);
+    $history = apply_filters('xingxy_ecosystem_points_history', null, $user_id);
+    if ($history === null) {
+        $record = (array) zib_get_user_meta($user_id, 'points_record', true);
+    } elseif (is_wp_error($history) || !is_array($history)) {
+        return '<div class="padding-h10 muted-2-color">积分记录暂时无法读取，请稍后重试。</div>';
+    } else {
+        $record = $history;
+    }
     $lists  = '';
 
     foreach ($record as $k => $v) {
@@ -462,17 +489,19 @@ function zibpay_user_is_allow_add_free_points($user_id)
  * @param {*} $key
  * @return {*}
  */
-function zibpay_add_user_free_points($user_id = 0, $value = 0, $key = '')
+function zibpay_add_user_free_points($user_id = 0, $value = 0, $key = '', $event_namespace = '', $event_id = '')
 {
 
     //判断用户还能增加经验值，允许。||是否超过今日上限
-    if (!$user_id || !$value || !zibpay_user_is_allow_add_free_points($user_id)) {
-        return;
+    $has_event_identity = is_string($event_namespace) && $event_namespace !== ''
+        && is_string($event_id) && $event_id !== '';
+    if (!$user_id || !$value) {
+        return $has_event_identity ? false : null;
     }
 
     //禁封判断
     if (_pz('user_ban_s', true) && zib_user_is_ban($user_id)) {
-        return;
+        return $has_event_identity ? false : null;
     }
 
     $data = array(
@@ -480,9 +509,52 @@ function zibpay_add_user_free_points($user_id = 0, $value = 0, $key = '')
         'type'  => zib_get_user_points_add_options($key)[0], //类型说明
     );
 
-    zibpay_update_user_points($user_id, $data);
+    if (is_string($event_namespace) && $event_namespace !== ''
+        && is_string($event_id) && $event_id !== '') {
+        $data['event_namespace'] = $event_namespace;
+        $data['event_id'] = $event_id;
+    }
+
+    if ($has_event_identity) {
+        // A claimed free-point event owns both the balance and its daily
+        // accounting. A null filter result means the migration is absent and
+        // deliberately falls through to the native legacy path.
+        $day_max = _pz('points_free_opt', 100, 'day_max');
+        if (is_string($day_max) && preg_match('/\A(?:0|[1-9][0-9]*)\z/', $day_max)) {
+            $maximum = (string) PHP_INT_MAX;
+            if (strlen($day_max) > strlen($maximum)
+                || (strlen($day_max) === strlen($maximum) && strcmp($day_max, $maximum) > 0)) {
+                return false;
+            }
+            $day_max = (int) $day_max;
+        }
+        if (!is_int($day_max) || $day_max < 0) {
+            return false;
+        }
+        $managed = apply_filters('xingxy_ecosystem_free_points_award', null, $user_id, $value, array(
+            'namespace' => $event_namespace,
+            'event_id' => $event_id,
+            'type' => $data['type'],
+            'desc' => '',
+            'order_num' => '',
+        ), $day_max, true);
+        if ($managed !== null) {
+            return $managed === true;
+        }
+    }
+
+    if (!zibpay_user_is_allow_add_free_points($user_id)) {
+        return $has_event_identity ? false : null;
+    }
+    // The legacy fallback intentionally keeps its historical null contract;
+    // it is not an exactly-once path and must not be advertised as retry-safe.
+    $writer_result = zibpay_update_user_points($user_id, $data);
+    if ($has_event_identity && $writer_result === false) {
+        return false;
+    }
     //记录每天明细
     zibpay_add_user_free_points_date_detail($user_id, $value);
+    return null;
 }
 
 /**
@@ -600,7 +672,7 @@ class zibpay_points_free_add
 
         $value = _pz('points_free_opt', 0, 'sign_up');
         if ($value) {
-            zibpay_add_user_free_points($user_id, $value, 'sign_up');
+            zibpay_add_user_free_points($user_id, $value, 'sign_up', 'site.free.signup', 'signup-' . $user_id);
         }
     }
 
@@ -622,8 +694,8 @@ class zibpay_points_free_add
                 return;
             }
 
+            if (zibpay_add_user_free_points($user_id, $value, 'sign_in', 'site.free.login', 'login-' . $user_id . '-' . $current_time) === false) { return; }
             zib_update_user_meta($user_id, '_signin_points_time', $current_time);
-            zibpay_add_user_free_points($user_id, $value, 'sign_in');
         }
     }
 
@@ -653,8 +725,8 @@ class zibpay_points_free_add
                 $key   = 'bbs_plate_new';
             }
             if ($value) {
+                if (zibpay_add_user_free_points($user_id, $value, $key, 'site.free.post', 'post-' . $post->ID) === false) { return; }
                 zib_update_post_meta($post->ID, '_user_points_new', true);
-                zibpay_add_user_free_points($user_id, $value, $key);
             }
         }
     }
@@ -684,8 +756,8 @@ class zibpay_points_free_add
         $key   = 'post_like';
 
         if ($value) {
+            if (zibpay_add_user_free_points($user_id, $value, $key, 'site.free.post_like', 'post-like-' . $post->ID . '-actor-' . $action_user_id . '-' . ($_this_add + 1)) === false) { return; }
             zib_update_post_meta($post->ID, '_user_points_like', $_this_add + 1);
-            zibpay_add_user_free_points($user_id, $value, $key);
         }
     }
 
@@ -714,8 +786,8 @@ class zibpay_points_free_add
         $value = _pz('points_free_opt', 0, $key);
 
         if ($value) {
+            if (zibpay_add_user_free_points($user_id, $value, $key, 'site.free.post_favorite', 'post-favorite-' . $post->ID . '-actor-' . $action_user_id . '-' . ($_this_add + 1)) === false) { return; }
             zib_update_post_meta($post->ID, '_user_points_favorite', $_this_add + 1);
-            zibpay_add_user_free_points($user_id, $value, $key);
         }
     }
 
@@ -738,8 +810,8 @@ class zibpay_points_free_add
         $value = _pz('points_free_opt', 0, $key);
 
         if ($value) {
+            if (zibpay_add_user_free_points($user_id, $value, $key, 'site.free.comment', 'comment-' . $comment->comment_ID) === false) { return; }
             zib_update_comment_meta($comment->comment_ID, '_user_points_new', true);
-            zibpay_add_user_free_points($user_id, $value, $key);
         }
     }
 
@@ -768,8 +840,8 @@ class zibpay_points_free_add
         $value = _pz('points_free_opt', 0, $key);
 
         if ($value) {
+            if (zibpay_add_user_free_points($user_id, $value, $key, 'site.free.comment_like', 'comment-like-' . $comment->comment_ID . '-actor-' . $action_user_id . '-' . ($_this_add + 1)) === false) { return; }
             zib_update_comment_meta($comment->comment_ID, '_user_points_like', $_this_add + 1);
-            zibpay_add_user_free_points($user_id, $value, $key);
         }
     }
 
@@ -798,8 +870,8 @@ class zibpay_points_free_add
                 $_user_points_followed = array($follow_user_id);
             }
 
+            if (zibpay_add_user_free_points($user_id, $value, $key, 'site.free.followed', 'follow-' . $follow_user_id . '-' . $followed_user_id) === false) { return; }
             zib_update_user_meta($user_id, '_user_points_followed', $_user_points_followed);
-            zibpay_add_user_free_points($user_id, $value, $key);
         }
     }
 
@@ -827,8 +899,8 @@ class zibpay_points_free_add
         $value = _pz('points_free_opt', 0, $key);
 
         if ($value) {
+            if (zibpay_add_user_free_points($user_id, $value, $key, 'site.free.bbs_score_extra', 'bbs-score-extra-' . $post->ID . '-actor-' . $action_user_id . '-' . ($_this_add + 1)) === false) { return; }
             zib_update_post_meta($post->ID, '_user_points_score_extra', $_this_add + 1);
-            zibpay_add_user_free_points($user_id, $value, $key);
         }
     }
 
@@ -850,8 +922,8 @@ class zibpay_points_free_add
         $value = _pz('points_free_opt', 0, $key);
 
         if ($value) {
+            if (zibpay_add_user_free_points($user_id, $value, $key, 'site.free.bbs_essence', 'bbs-essence-' . $post->ID) === false) { return; }
             zib_update_post_meta($post->ID, '_user_points_essence', true);
-            zibpay_add_user_free_points($user_id, $value, $key);
         }
     }
 
@@ -871,8 +943,8 @@ class zibpay_points_free_add
         $value = _pz('points_free_opt', 0, $key);
 
         if ($value) {
+            if (zibpay_add_user_free_points($post->post_author, $value, $key, 'site.free.bbs_plate_hot', 'bbs-plate-hot-' . $post->ID) === false) { return; }
             zib_update_post_meta($post->ID, '_user_points_hot', true);
-            zibpay_add_user_free_points($post->post_author, $value, $key);
         }
     }
 
@@ -893,8 +965,8 @@ class zibpay_points_free_add
         $value = _pz('points_free_opt', 0, $key);
 
         if ($value) {
+            if (zibpay_add_user_free_points($post->post_author, $value, $key, 'site.free.bbs_posts_hot', 'bbs-post-hot-' . $post->ID) === false) { return; }
             zib_update_post_meta($post->ID, '_user_points_hot', true);
-            zibpay_add_user_free_points($post->post_author, $value, $key);
         }
     }
 
@@ -915,8 +987,8 @@ class zibpay_points_free_add
         $value = _pz('points_free_opt', 0, $key);
 
         if ($value) {
+            if (zibpay_add_user_free_points($user_id, $value, $key, 'site.free.bbs_comment_hot', 'bbs-comment-hot-' . $comment->comment_ID) === false) { return; }
             zib_update_comment_meta($comment->comment_ID, '_user_points_hot', true);
-            zibpay_add_user_free_points($user_id, $value, $key);
         }
     }
 
@@ -938,8 +1010,8 @@ class zibpay_points_free_add
         $value = _pz('points_free_opt', 0, $key);
 
         if ($value) {
+            if (zibpay_add_user_free_points($user_id, $value, $key, 'site.free.bbs_adopt', 'bbs-adopt-' . $comment->comment_ID) === false) { return; }
             zib_update_comment_meta($comment->comment_ID, '_user_points_adopt', true);
-            zibpay_add_user_free_points($user_id, $value, $key);
         }
     }
 

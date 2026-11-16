@@ -64,6 +64,36 @@ function zibpay_ajax_initiate_pay($payment_id = 0)
         zib_send_json_error(['code' => 'error', 'msg' => '支付数据不存在']);
     }
 
+    // Managed points payments retain their persisted number and recover pending
+    // children before any native paid shortcut, expiry write or number refresh.
+    $managed_points_owner = false;
+    if (($payment_data['method'] ?? null) === 'points') {
+        try { $managed_points_owner = apply_filters('xingxy_ecosystem_points_payment_debit_managed', false); }
+        catch (Throwable $exception) { $managed_points_owner = null; }
+    }
+    if ($managed_points_owner !== false) {
+        $authorized = $managed_points_owner === true && class_exists('Xingxy_Ecosystem_Points_Payment_Debit')
+            && Xingxy_Ecosystem_Points_Payment_Debit::http_authorized($payment_id);
+        $initiate_pay = $authorized ? zibpay_points_initiate_pay(array(
+            'payment_id' => $payment_id,
+            'user_id' => get_current_user_id(),
+            'payment_method' => 'points',
+            'order_num' => $payment_data['order_num'],
+            'order_price' => $payment_data['price'],
+        )) : array('error' => 1, 'msg' => '积分支付暂不可用，请重试原订单');
+        if ($initiate_pay['error'] === 0) {
+            $initiate_pay['reload'] = true;
+            $initiate_pay['goto'] = $return_url;
+        } elseif ($authorized && empty($_REQUEST['payment_modal'])) {
+            $initiate_pay['modal'] = zibpay_get_order_pay_modal_content($payment_data, $return_url);
+        }
+        $initiate_pay['float_btn'] = $authorized ? zibpay_get_user_wait_pay_float_window() : '';
+        $initiate_pay['over_time'] = false;
+        header('Content-type:application/json;character=utf-8');
+        echo json_encode($initiate_pay);
+        exit();
+    }
+
     if ($payment_data['status'] == '1') {
         zib_send_json_success(['code' => 'success', 'msg' => '订单已支付，请刷新页面']);
     }
@@ -97,6 +127,17 @@ function zibpay_ajax_initiate_pay($payment_id = 0)
         //前台传递了支付方式，并且支付方式合法，则更新支付方式
         $payment_update_data['method'] = $payment_method;
         $payment_data['method']        = $payment_method;
+    }
+
+    $points_payment_prepare = apply_filters(
+        'xingxy_ecosystem_points_payment_prepare',
+        null,
+        $payment_id,
+        get_current_user_id(),
+        $payment_data['method']
+    );
+    if ($points_payment_prepare !== null && $points_payment_prepare !== true) {
+        zib_send_json_error(['code' => 'error', 'msg' => '支付请求校验失败']);
     }
 
     //更新数据，刷新支付单号
@@ -346,6 +387,16 @@ function zibpay_initiate_pay($order_data)
         'return_url'     => !empty($_REQUEST['return_url']) ? $_REQUEST['return_url'] : home_url(), //返回地址
     );
     $order_data = wp_parse_args($order_data, $defaults);
+
+    $points_payment_start = apply_filters(
+        'xingxy_ecosystem_points_payment_start',
+        null,
+        $order_data,
+        get_current_user_id()
+    );
+    if ($points_payment_start !== null && $points_payment_start !== true) {
+        return array('error' => 1, 'msg' => '支付请求校验失败');
+    }
 
     //实例化sdk
     new ZibPaySDK();
@@ -1197,6 +1248,101 @@ function zibpay_initiate_card_pass($order_data = array())
         return array('error' => 1, 'msg' => '异常错误');
     }
 
+    if (isset($zibpay_card_pass->type) && $zibpay_card_pass->type === 'points_exchange') {
+        try {
+            $managed = apply_filters(
+                'xingxy_ecosystem_points_card_redeem',
+                null,
+                isset($order_data['payment_id']) ? $order_data['payment_id'] : null,
+                isset($order_data['order_num']) ? $order_data['order_num'] : null
+            );
+        } catch (Throwable $exception) {
+            return array('error' => 1, 'msg' => '卡密兑换失败，请重试');
+        }
+
+        if ($managed !== null) {
+            $normalize_id = static function ($value) {
+                if (is_int($value)) { return $value > 0 ? $value : null; }
+                if (!is_string($value) || !preg_match('/\A[1-9][0-9]*\z/', $value)) { return null; }
+                $maximum = (string) PHP_INT_MAX;
+                if (strlen($value) > strlen($maximum)
+                    || (strlen($value) === strlen($maximum) && strcmp($value, $maximum) > 0)) { return null; }
+                return (int) $value;
+            };
+            $zero_price = static function ($value) {
+                if (is_int($value) || is_float($value)) {
+                    return is_finite((float) $value) && (float) $value === 0.0;
+                }
+                return is_string($value) && in_array($value, array('0', '0.0', '0.00'), true);
+            };
+            $safe_points = static function ($value, $allow_zero) {
+                if (!is_int($value) || $value < 0 || (!$allow_zero && $value === 0)) { return false; }
+                $digits = (string) $value;
+                $maximum = '9007199254740991';
+                return strlen($digits) < strlen($maximum)
+                    || (strlen($digits) === strlen($maximum) && strcmp($digits, $maximum) <= 0);
+            };
+
+            $payment_id = $normalize_id(isset($order_data['payment_id']) ? $order_data['payment_id'] : null);
+            $user_id = $normalize_id(get_current_user_id());
+            $card_id = $normalize_id(isset($zibpay_card_pass->id) ? $zibpay_card_pass->id : null);
+            $payment_num = isset($order_data['order_num']) ? $order_data['order_num'] : null;
+            $order = is_array($managed) && isset($managed['order']) && is_array($managed['order']) ? $managed['order'] : array();
+            $order_keys = array_keys($order);
+            sort($order_keys, SORT_STRING);
+            $expected_order_keys = array(
+                'id', 'user_id', 'post_id', 'order_num', 'payment_id', 'order_type', 'product_id',
+                'pay_type', 'pay_num', 'pay_price', 'pay_detail', 'pay_time', 'status',
+            );
+            sort($expected_order_keys, SORT_STRING);
+            $details = isset($order['pay_detail']) && is_array($order['pay_detail']) ? $order['pay_detail'] : array();
+            $time = array();
+            $valid_time = isset($order['pay_time']) && is_string($order['pay_time'])
+                && preg_match('/\A([0-9]{4})-([0-9]{2})-([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2})\z/', $order['pay_time'], $time) === 1
+                && checkdate((int) $time[2], (int) $time[3], (int) $time[1])
+                && (int) $time[4] <= 23 && (int) $time[5] <= 59 && (int) $time[6] <= 59;
+
+            if (!is_array($managed)
+                || count($managed) !== 8
+                || array_keys($managed) !== array('ok', 'payment_id', 'order_id', 'user_id', 'points', 'balance', 'replayed', 'order')
+                || $managed['ok'] !== true
+                || !is_int($managed['payment_id']) || $payment_id === null || $managed['payment_id'] !== $payment_id
+                || !is_int($managed['user_id']) || $user_id === null || $managed['user_id'] !== $user_id
+                || !is_int($managed['order_id']) || $managed['order_id'] <= 0
+                || !$safe_points(isset($managed['points']) ? $managed['points'] : null, false)
+                || !$safe_points(isset($managed['balance']) ? $managed['balance'] : null, true)
+                || !is_bool($managed['replayed'])
+                || count($order) !== count($expected_order_keys) || $order_keys !== $expected_order_keys
+                || !isset($order['id']) || !is_int($order['id']) || $order['id'] !== $managed['order_id']
+                || !isset($order['user_id']) || !is_int($order['user_id']) || $order['user_id'] !== $user_id
+                || !isset($order['post_id']) || $order['post_id'] !== 0
+                || !isset($order['order_num']) || !is_string($order['order_num']) || $order['order_num'] === ''
+                || strlen($order['order_num']) > 128 || strpos($order['order_num'], "\0") !== false
+                || preg_match('//u', $order['order_num']) !== 1
+                || !isset($order['payment_id']) || !is_int($order['payment_id']) || $order['payment_id'] !== $payment_id
+                || !isset($order['order_type']) || $order['order_type'] !== 9
+                || !isset($order['product_id']) || $card_id === null || $order['product_id'] !== 'exchange_' . $card_id
+                || !isset($order['pay_type']) || $order['pay_type'] !== 'card_pass'
+                || !isset($order['pay_num']) || $order['pay_num'] !== $payment_num
+                || !isset($order['pay_price']) || !$zero_price($order['pay_price'])
+                || count($details) !== 1 || !array_key_exists('card_pass', $details) || !$zero_price($details['card_pass'])
+                || !$valid_time || !isset($order['status']) || $order['status'] !== 1) {
+                return array('error' => 1, 'msg' => '卡密兑换失败，请重试');
+            }
+
+            $msg = ($order_data['order_type'] ?? 0) == 8
+                ? '卡密充值成功，充值金额：' . $order_data['order_price']
+                : '卡密兑换成功';
+            return array(
+                'error' => 0,
+                'reload' => true,
+                'msg' => $msg,
+                'payok' => 1,
+                'return_url' => $order_data['return_url'],
+            );
+        }
+    }
+
     //函数节流
     zib_ajax_debounce('card_pass_initiate_pay', $zibpay_card_pass->id);
 
@@ -1225,6 +1371,18 @@ function zibpay_initiate_card_pass($order_data = array())
 //积分支付
 function zibpay_points_initiate_order()
 {
+    try {
+        $managed_owner = apply_filters('xingxy_ecosystem_points_payment_debit_managed', false);
+        if ($managed_owner !== false && ($managed_owner !== true
+            || !class_exists('Xingxy_Ecosystem_Points_Payment_Debit')
+            || !Xingxy_Ecosystem_Points_Payment_Debit::http_authorized())) {
+            zib_send_json_error('支付请求校验失败，请刷新后重试');
+            return;
+        }
+    } catch (Throwable $exception) {
+        zib_send_json_error('支付请求校验失败，请刷新后重试');
+        return;
+    }
 
     $order_type = !empty($_REQUEST['order_type']) ? (int) $_REQUEST['order_type'] : 0;
     $user_id    = get_current_user_id();
@@ -1373,6 +1531,21 @@ add_action('wp_ajax_nopriv_points_initiate_pay', 'zibpay_points_initiate_order')
  */
 function zibpay_points_initiate_pay(array $order_data)
 {
+    try {
+        $managed_owner = apply_filters('xingxy_ecosystem_points_payment_debit_managed', false);
+        if ($managed_owner !== false) {
+            $managed = $managed_owner === true
+                ? apply_filters('xingxy_ecosystem_points_payment_debit', null, $order_data) : false;
+            if (!is_array($managed) || !in_array($managed['error'] ?? null, array(0, 1), true)
+                || !is_string($managed['msg'] ?? null)) {
+                return array('error' => 1, 'msg' => '积分支付暂不可用，请重试原订单');
+            }
+            return $managed;
+        }
+    } catch (Throwable $exception) {
+        return array('error' => 1, 'msg' => '积分支付暂不可用，请重试原订单');
+    }
+
 
     $user_id = $order_data['user_id'];
     //我的积分

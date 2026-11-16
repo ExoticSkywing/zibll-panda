@@ -893,6 +893,22 @@ class ZibPay
     //关闭单个订单
     public static function close_order_single($order_id, $type = 'timeout', $reason = '')
     {
+        $source = self::get_order($order_id);
+        $is_points = !empty($source['payment_id']) ? (self::get_payment($source['payment_id'])['method'] ?? null) === 'points' : ($source['pay_type'] ?? null) === 'points';
+        if ($is_points) {
+            try {
+                $owner = apply_filters('xingxy_ecosystem_points_payment_debit_managed', false);
+                if ($owner !== false) {
+                    $closed = apply_filters('xingxy_ecosystem_points_payment_debit_close', null, 'order', (int) $order_id,
+                        function () use ($order_id, $type, $reason) { return self::xingxy_points_native_close_order_single($order_id, $type, $reason); }); return is_int($closed) && $closed > 0 ? $closed : false;
+                }
+            } catch (Throwable $exception) { return false; }
+        }
+        return self::xingxy_points_native_close_order_single($order_id, $type, $reason);
+    }
+
+    private static function xingxy_points_native_close_order_single($order_id, $type = 'timeout', $reason = '')
+    {
         global $wpdb;
 
         if ($wpdb->update($wpdb->zibpay_order, array('status' => -1), array('id' => $order_id, 'status' => 0))) {
@@ -913,6 +929,22 @@ class ZibPay
 
     //关闭payment订单
     public static function close_payment($id, $type = 'timeout', $reason = '')
+    {
+        $source = self::get_payment($id);
+        $is_points = ($source['method'] ?? null) === 'points';
+        if ($is_points) {
+            try {
+                $owner = apply_filters('xingxy_ecosystem_points_payment_debit_managed', false);
+                if ($owner !== false) {
+                    $closed = apply_filters('xingxy_ecosystem_points_payment_debit_close', null, 'payment', (int) $id,
+                        function () use ($id, $type, $reason) { return self::xingxy_points_native_close_payment($id, $type, $reason); }); return $closed === true;
+                }
+            } catch (Throwable $exception) { return false; }
+        }
+        return self::xingxy_points_native_close_payment($id, $type, $reason);
+    }
+
+    private static function xingxy_points_native_close_payment($id, $type = 'timeout', $reason = '')
     {
         global $wpdb;
         $ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$wpdb->zibpay_order} WHERE payment_id = %d AND status = %d", $id, 0));

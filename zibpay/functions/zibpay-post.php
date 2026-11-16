@@ -134,6 +134,7 @@ function zibpay_pay_points_cashier_modal($post_id = 0)
     $form .= '<input type="hidden" name="post_id" value="' . $post_id . '">';
     $form .= '<input type="hidden" name="order_type" value="' . $pay_type . '">';
     $form .= '<input type="hidden" name="action" value="points_initiate_pay">';
+    $form .= wp_nonce_field('xingxy-points-order', '_xingxy_points_nonce', false, false);
     $form .= '<button class="but jb-yellow padding-lg btn-block radius wp-ajax-submit mt10" >立即支付<span class="ml6 px12">' . zibpay_get_points_mark() . '</span>' . $pay_price . '</button>';
     $form .= '</form>';
 
